@@ -18,4 +18,4 @@ Informacinių sistemų inžinerija
 * MySql duomenų bazė
 * Autoplius scraperio, (skelbimų url, kuris įrašomas į db ir naudojamas skelbimo info scraperio) .net console application.
 * Autogidas scraperio, (skelbimų url, kuris įrašomas į db ir naudojamas skelbimo info scraperio) .net console application.
-* Autoplius ir autogidas VIN scraperiai, (naudojantis JS)  .net windows application naudojantis cefsharp.
+* Autoplius ir autogidas VIN scraperiai, naudojantys cefsharp.
