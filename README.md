@@ -9,10 +9,10 @@ Informacinių sistemų inžinerija
 **AutoSkelbiu** yra didžiausių automobilių skelbimų svetainių sujungimas į vieną sistemą. Projektas buvo naudojamas **EDUKACINIAIS TIKSLAIS** ir **NIEKADA** nebuvo naudojamas komerciniais tikslais. Visi atvaizduojami duomenys, kurie buvo gauti iš automobilių skelbimų svetainių visais atvejais nukreipdavo į originalų autorių. Gautuose duomenyse nebuvo informacijos apie asmenį t.y. pardavėją (tel.nr., vardas, t.t.), o buvo gauti viešai prieinami ir teisių nepažeidžiantys duomenys kaip automobilio specifikacijos, kaina, nuoroda nukreipianti į originalų skelbimą ir t.t., todėl šis projektas nepažeidžia asmens duomenų privatumo teisės ir nesukelia nuostolių automobilių skelbimų svetainėms.
 
 ### Projektas sudarytas iš:
-* Vue js frontend aplikacijos. (Visų skelbimų atvaizdavimas)
-* .NET 5 web api backend aplikacijos (Tarpininkas tarp duomenų bazės ir jų pateikimo frontend, prisijungimai prie MySQL duomenų bazės buvo panaikinti projekto įkelimo metu).
-* Autoplius scraperio (skelbimo info), .net console application.
-* Autogidas scraperio (skelbimo info), .net console application.
+* Vue js frontend aplikacijos. /client (Visų skelbimų atvaizdavimas)
+* .NET 5 web api backend aplikacijos /AutoSkelbiu (Tarpininkas tarp duomenų bazės ir jų pateikimo frontend, prisijungimai prie MySQL duomenų bazės buvo panaikinti projekto įkelimo metu).
+* Autoplius scraperio (skelbimo info), /AutoSkelbiuScraper  .net console application.
+* Autogidas scraperio (skelbimo info), /AutogidasScraper .net console application.
 
 ### Papildomos programos, kurios nėra įtrauktos į repozitoriją:
 * MySql duomenų bazė
