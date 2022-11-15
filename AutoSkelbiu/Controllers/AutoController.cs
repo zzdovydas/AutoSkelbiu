@@ -17,13 +17,11 @@ namespace AutoSkelbiu.Controllers
     public class AutoController : Controller
     {
 
-        private readonly ILogger<AutoController> _logger;
         private readonly AutoDAL _autoDal;
 
-        public AutoController(ILogger<AutoController> logger, AutoDAL autoDAL)
+        public AutoController(AutoDAL autoDAL)
         {
             _autoDal = autoDAL;
-            _logger = logger;
         }
 
         [HttpGet]

@@ -16,12 +16,11 @@ namespace AutoSkelbiu.DAL
     public class AutoDAL
     {
 
-        private readonly ILogger<AutoDAL> _logger;
         private readonly string dbConnString;
 
         public AutoDAL()
         {
-            dbConnString = "server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;";
+            dbConnString = "";
         }
 
         public List<Auto> GetAutoList()
@@ -123,7 +122,6 @@ namespace AutoSkelbiu.DAL
 
             return l;
         }
-        //SELECT DISTINCT AUTO_MAKE FROM `AUTO`
         public List<AutoMake> GetAutoMakes(long? makeId)
         {
             List<AutoMake> l = new List<AutoMake>();
