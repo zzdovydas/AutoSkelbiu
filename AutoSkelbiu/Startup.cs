@@ -1,18 +1,19 @@
+using System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.SpaServices;
+using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.SpaServices;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Cors;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using AutoSkelbiu.DAL;
+using System.Linq;
 
 namespace AutoSkelbiu
 {
@@ -30,6 +31,8 @@ namespace AutoSkelbiu
         {
             services.AddCors();
             services.AddControllers();
+
+            services.AddScoped<AutoDAL, AutoDAL>();
 
             services.AddSpaStaticFiles(configuration: options => {options.RootPath = "wwwroot"; });
         }

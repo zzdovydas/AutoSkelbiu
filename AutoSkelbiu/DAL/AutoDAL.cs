@@ -1,13 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
+using System.Data.SqlClient;
+using AutoSkelbiu.Helpers;
+using AutoSkelbiu.Models;
 using System.Runtime;
 using System.Linq;
-using System.Threading.Tasks;
-using AutoSkelbiu.Models;
-using System.Data.SqlClient;
-using MySql.Data.MySqlClient;
 using Dapper;
 
 namespace AutoSkelbiu.DAL
@@ -16,10 +17,11 @@ namespace AutoSkelbiu.DAL
     {
 
         private readonly ILogger<AutoDAL> _logger;
+        private readonly string dbConnString;
 
         public AutoDAL()
         {
-
+            dbConnString = "server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;";
         }
 
         public List<Auto> GetAutoList()
@@ -27,74 +29,43 @@ namespace AutoSkelbiu.DAL
 
             List<Auto> l = new List<Auto>();
 
-            using (MySqlConnection connection = new MySqlConnection(""))
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<Auto>(@"SELECT auto1.*, img.IMAGE_PATH AS 'THUMBNAIL' FROM (SELECT LINK_ID, MAX(CREATED_AT) AS CREATED_AT_MAX FROM `AUTO` GROUP BY LINK_ID) AS auto INNER JOIN `AUTO` AS auto1 ON auto.LINK_ID = auto1.LINK_ID AND
                  auto1.CREATED_AT = auto.CREATED_AT_MAX INNER JOIN IMAGES img ON auto1.LINK_ID = img.LINK_ID AND auto1.IS_SOLD=0 AND img.IS_MAIN_IMAGE=true GROUP BY img.LINK_ID LIMIT 20").ToList();
-                //SELECT auto1.* FROM (SELECT LINK_ID, MAX(CREATED_AT) AS CREATED_AT_MAX FROM `AUTO` GROUP BY LINK_ID) AS auto INNER JOIN `AUTO` AS auto1 ON auto.LINK_ID = auto1.LINK_ID AND auto1.CREATED_AT = auto.CREATED_AT_MAX 
-
             }
 
             return l;
         }
 
-        public List<Auto> GetAutoListFiltered(long? makeId, long? pageNumber, long? fuelTypeId, long? priceFrom, long? priceTo, int? yearFrom, int? yearTo,
-                                                int? hasVin, string gearbox, string autoModel)
+        public long? GeneratePageNumber(long? pageNumber)
         {
-            if (pageNumber == null)
-                pageNumber = 0;
-            else
-                pageNumber = (pageNumber - 1) * 20;
+            if (pageNumber != null)
+            {
+                return (pageNumber - 1) * 20;
+            }
+
+            return 0;
+        }
+
+        public string GenerateFilterQuery(FilterData data)
+        {
+            string resultQuery = "";
+
+            data.PageNumber = GeneratePageNumber(data.PageNumber);
 
             string filterQuery = "WHERE 1=1";
-
-            if (makeId != null)
-            {
-                string autoMakeName = GetAutoMakes(makeId).First().AUTO_MAKE;
-                filterQuery += " AND auto1.AUTO_MAKE='" + autoMakeName + "'";
-            }
-
-            if (fuelTypeId != null)
-            {
-                string fuelTypeName = GetFuelTypes(fuelTypeId).First().AUTO_FUEL_TYPE_NAME;
-                filterQuery += " AND auto1.AUTO_FUEL_TYPE='" + fuelTypeName + "'";
-            }
-
-            if (autoModel != null && autoModel != "")
-            {
-                filterQuery += " AND REPLACE(auto1.AUTO_MODEL, ' ', '')='" + autoModel + "'";
-            }
-
-            if (priceFrom != null)
-            {
-                filterQuery += " AND auto1.AUTO_PRICE>=" + priceFrom;
-            }
-
-            if (hasVin != null)
-            {
-                filterQuery += hasVin == 1 ? " AND auto1.HAS_VIN=" + hasVin : "";
-            }
-
-            if (priceTo != null)
-            {
-                filterQuery += " AND auto1.AUTO_PRICE<=" + priceTo;
-            }
-
-            if (gearbox != null && gearbox != string.Empty)
-            {
-                filterQuery += " AND auto1.AUTO_GEARBOX='" + gearbox + "'";
-            }
-
-            if (yearFrom != null)
-            {
-                filterQuery += " AND auto1.AUTO_MADE_IN>=" + string.Format("'{0}-01-01'", yearFrom) + "";
-            }
-
-            if (yearTo != null)
-            {
-                filterQuery += " AND auto1.AUTO_MADE_IN<=" + string.Format("'{0}-12-30'", yearTo) + "";
-            }
+            
+            filterQuery += FilterQueryGenerator.GenerateMake(data.FuelTypeId);
+            filterQuery += FilterQueryGenerator.GenerateFuelTypeName(data.FuelTypeId);
+            filterQuery += FilterQueryGenerator.GenerateModel(data.Model);
+            filterQuery += FilterQueryGenerator.GeneratePriceFrom(data.PriceFrom);
+            filterQuery += FilterQueryGenerator.GenerateHasVin(data.HasVin);
+            filterQuery += FilterQueryGenerator.GeneratePriceTo(data.PriceTo);
+            filterQuery += FilterQueryGenerator.GenerateGearbox(data.Gearbox);
+            filterQuery += FilterQueryGenerator.GenerateYearFrom(data.YearFrom);
+            filterQuery += FilterQueryGenerator.GenerateYearTo(data.YearTo);
 
             if (filterQuery.Length < 10)
                 filterQuery = "";
@@ -104,12 +75,23 @@ namespace AutoSkelbiu.DAL
             string queryStart = @"SELECT auto1.*, img.IMAGE_PATH AS 'THUMBNAIL' FROM (SELECT LINK_ID, MAX(CREATED_AT) AS CREATED_AT_MAX FROM `AUTO` GROUP BY LINK_ID) AS auto INNER JOIN `AUTO` AS auto1 ON auto.LINK_ID = auto1.LINK_ID AND
                  auto1.CREATED_AT = auto.CREATED_AT_MAX INNER JOIN IMAGES img ON auto1.LINK_ID = img.LINK_ID AND auto1.IS_SOLD=0 AND img.IS_MAIN_IMAGE=true ";
 
-            string queryEnd = " GROUP BY img.LINK_ID LIMIT " + pageNumber.ToString() + " , 20;";
+            string queryEnd = " GROUP BY img.LINK_ID LIMIT " + data.PageNumber.ToString() + " , 20;";
 
-            using (MySqlConnection connection = new MySqlConnection())
+            resultQuery = queryStart + filterQuery + queryEnd;
+
+            return resultQuery;
+        }
+
+        public List<Auto> GetFilteredAutoList(FilterData data)
+        {
+            List<Auto> l = new List<Auto>();
+
+            string query = GenerateFilterQuery(data);
+            
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
-                l = connection.Query<Auto>(queryStart + filterQuery + queryEnd).ToList();
+                l = connection.Query<Auto>(query).ToList();
             }
 
             return l;
@@ -119,7 +101,7 @@ namespace AutoSkelbiu.DAL
         {
             Auto l = new Auto();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<Auto>(@"SELECT auto.*, links.LINK_URL, links.AUTO_VIN FROM `AUTO` auto INNER JOIN LINKS links ON links.LINK_ID = auto.LINK_ID WHERE auto.AUTO_ID=" + autoId).First();
@@ -132,7 +114,7 @@ namespace AutoSkelbiu.DAL
         {
             List<Image> l = new List<Image>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<Image>(@"SELECT * FROM `IMAGES` WHERE LINK_ID=" + linkId).ToList();
@@ -146,7 +128,7 @@ namespace AutoSkelbiu.DAL
         {
             List<AutoMake> l = new List<AutoMake>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 if (makeId == null)
@@ -163,7 +145,7 @@ namespace AutoSkelbiu.DAL
         {
             List<Model> l = new List<Model>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 if (makeId != null)
@@ -179,7 +161,7 @@ namespace AutoSkelbiu.DAL
         {
             List<AutoFuelTypes> l = new List<AutoFuelTypes>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 if (fuelTypeId == null)
@@ -195,7 +177,7 @@ namespace AutoSkelbiu.DAL
         {
             List<string> l = new List<string>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<string>(@"SELECT DISTINCT AUTO_GEARBOX FROM AUTO").ToList();
@@ -209,7 +191,7 @@ namespace AutoSkelbiu.DAL
         {
             List<string> l = new List<string>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<string>(@"SELECT DISTINCT AUTO_CLIMATE_CONTROL FROM AUTO").ToList();
@@ -223,7 +205,7 @@ namespace AutoSkelbiu.DAL
         {
             List<string> l = new List<string>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<string>(@"SELECT DISTINCT AUTO_COLOR FROM AUTO").ToList();
@@ -237,7 +219,7 @@ namespace AutoSkelbiu.DAL
         {
             List<string> l = new List<string>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<string>(@"SELECT DISTINCT AUTO_STEERING_WHEEL_SIDE FROM AUTO").ToList();
@@ -251,7 +233,7 @@ namespace AutoSkelbiu.DAL
         {
             List<string> l = new List<string>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<string>(@"SELECT DISTINCT AUTO_WHEEL_DRIVE FROM AUTO").ToList();
@@ -265,7 +247,7 @@ namespace AutoSkelbiu.DAL
         {
             List<string> l = new List<string>();
 
-            using (MySqlConnection connection = new MySqlConnection())
+            using (MySqlConnection connection = new MySqlConnection(dbConnString))
             {
                 connection.Open();
                 l = connection.Query<string>(@"SELECT DISTINCT AUTO_DEFECT FROM AUTO").ToList();

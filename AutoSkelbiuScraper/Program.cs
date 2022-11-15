@@ -100,7 +100,7 @@ namespace AutoSkelbiuScraper
         }
         private static void GetUrlList()
         {
-            using (MySqlConnection connection = new MySqlConnection(""))
+            using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
             {
                 connection.Open();
                 l = new List<LINKS>();
@@ -110,7 +110,7 @@ namespace AutoSkelbiuScraper
 
         private static void MarkLinkAsSold(long linkId)
         {
-            using (MySqlConnection connection = new MySqlConnection(""))
+            using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
             {
                 connection.Open();
                 string sql = "UPDATE LINKS SET IS_SOLD=1, UPDATED_AT=CURRENT_TIMESTAMP() WHERE LINK_ID=@LINK_ID;";
@@ -124,7 +124,7 @@ namespace AutoSkelbiuScraper
 
         private static void InsertAuto(Auto auto)
         {
-            using (MySqlConnection connection = new MySqlConnection(""))
+            using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
             {
                 connection.Open();
                 string sql = @"INSERT INTO AUTO (AUTO_ID,AUTO_TA,LINK_ID,AUTO_MAKE,AUTO_MODEL,AUTO_PRICE,AUTO_MADE_IN,AUTO_MILEAGE,AUTO_ENGINE,AUTO_FUEL_TYPE,AUTO_TYPE, AUTO_DOOR_NUMBER,AUTO_GEARBOX,AUTO_CLIMATE_CONTROL,AUTO_COLOR,AUTO_STEERING_WHEEL_SIDE,AUTO_WHEEL_SIZE,AUTO_SEATS,AUTO_EMISSIONS,AUTO_LENGTH_TYPE,AUTO_HEIGHT_TYPE, AUTO_WHEEL_DRIVE, AUTO_DEFECT, AUTO_SDK, IS_SOLD)
@@ -137,7 +137,7 @@ namespace AutoSkelbiuScraper
 
         private static void InsertImages(List<ImagePath> images)
         {
-            using (MySqlConnection connection = new MySqlConnection(""))
+            using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
             {
                 connection.Open();
                 for (int i = 0; i < images.Count; i++)

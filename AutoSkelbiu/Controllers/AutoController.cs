@@ -1,12 +1,13 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Linq;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using AutoSkelbiu.Helpers;
 using AutoSkelbiu.Models;
 using AutoSkelbiu.DAL;
+using System.Linq;
 using Dapper;
 
 namespace AutoSkelbiu.Controllers
@@ -17,78 +18,68 @@ namespace AutoSkelbiu.Controllers
     {
 
         private readonly ILogger<AutoController> _logger;
+        private readonly AutoDAL _autoDal;
 
-        public AutoController(ILogger<AutoController> logger)
+        public AutoController(ILogger<AutoController> logger, AutoDAL autoDAL)
         {
+            _autoDal = autoDAL;
             _logger = logger;
         }
 
         [HttpGet]
         public IActionResult GetAutoList()
         {
-            AutoDAL dal = new AutoDAL();
-            return Ok(dal.GetAutoList());
+            return Ok(_autoDal.GetAutoList());
         }
 
         [HttpGet]
         public IActionResult GetAutoById(long autoId)
         {
-            AutoDAL dal = new AutoDAL();
-            return Ok(dal.GetAutoById(autoId));
+            return Ok(_autoDal.GetAutoById(autoId));
         }
 
-        static string CleanInput(string strIn)
+        [NonAction]
+        public FilterData CleanFilterInput(FilterData data)
         {
-            // Replace invalid characters with empty strings.
-            try
-            {
-                return Regex.Replace(strIn, @"[^\w\.@-]", "",
-                                     RegexOptions.None, TimeSpan.FromSeconds(1.5));
-            }
-            // If we timeout when replacing invalid characters,
-            // we should return Empty.
-            catch (RegexMatchTimeoutException)
-            {
-                return String.Empty;
-            }
+            data.Gearbox = InputValidationHelper.SanitizeIllegalCharacters(data.Gearbox);
+            data.Model = InputValidationHelper.SanitizeIllegalCharacters(data.Model);
+            
+            return data;
         }
 
         [HttpGet]
-        public IActionResult GetAutoListFiltered(long? makeId, long? pageNumber, long? fuelTypeId, long? priceFrom, long? priceTo, int? yearFrom, int? yearTo,
-                                                int? hasVin, string gearbox, string autoModel)
+        public IActionResult GetFilteredAutoList(FilterData input)
         {
-            AutoDAL dal = new AutoDAL();
-            gearbox = gearbox == null ? "" : CleanInput(gearbox);
-            autoModel = autoModel == null ? "" : CleanInput(autoModel);
-            return Ok(dal.GetAutoListFiltered(makeId, pageNumber, fuelTypeId, priceFrom, priceTo, yearFrom, yearTo, hasVin, gearbox, autoModel));
+            AutoDAL _autoDal = new AutoDAL();
+
+            input = CleanFilterInput(input);
+            List<Auto> filteredList = _autoDal.GetFilteredAutoList(input);
+
+            return Ok(filteredList);
         }
 
         [HttpGet]
         public IActionResult GetImagesById(long linkId)
         {
-            AutoDAL dal = new AutoDAL();
-            return Ok(dal.GetImagesById(linkId));
+            return Ok(_autoDal.GetImagesById(linkId));
         }
 
         [HttpGet]
         public IActionResult GetAutoMakes()
         {
-            AutoDAL dal = new AutoDAL();
-            return Ok(dal.GetAutoMakes(null));
+            return Ok(_autoDal.GetAutoMakes(null));
         }
 
         [HttpGet]
         public IActionResult GetAutoModels(long makeId)
         {
-            AutoDAL dal = new AutoDAL();
-            return Ok(dal.GetAutoModels(makeId));
+            return Ok(_autoDal.GetAutoModels(makeId));
         }
 
         [HttpGet]
         public IActionResult GetFuelTypes()
         {
-            AutoDAL dal = new AutoDAL();
-            return Ok(dal.GetFuelTypes(null));
+            return Ok(_autoDal.GetFuelTypes(null));
         }
     }
 }
