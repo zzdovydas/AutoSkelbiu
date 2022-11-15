@@ -27,7 +27,7 @@ namespace AutoSkelbiu.DAL
         {
             User user = new User();
 
-            using (MySqlConnection connection = new MySqlConnection(""))
+            using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
             {
                 user = connection.Query<User>(@"SELECT * FROM USERS WHERE USER_EMAIL='" + email + "' AND USER_PASSWORD='" + password + "'").FirstOrDefault();
             }
@@ -40,7 +40,7 @@ namespace AutoSkelbiu.DAL
 
             List<Auto> l = new List<Auto>();
 
-            using (MySqlConnection connection = new MySqlConnection(""))
+            using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
             {
                 connection.Open();
                 l = connection.Query<Auto>(@"SELECT auto1.*, img.IMAGE_PATH AS 'THUMBNAIL' FROM (SELECT LINK_ID, MAX(CREATED_AT) AS CREATED_AT_MAX FROM `AUTO` GROUP BY LINK_ID) AS auto INNER JOIN `AUTO` AS auto1 ON auto.LINK_ID = auto1.LINK_ID AND
@@ -56,7 +56,7 @@ namespace AutoSkelbiu.DAL
         {
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(""))
+                using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
                 {
                     connection.Execute("INSERT INTO REMEMBERED_LIST (USER_ID, LINK_ID) VALUES (" + userId + ", " + linkId + ")");
                 }
@@ -73,7 +73,7 @@ namespace AutoSkelbiu.DAL
         {
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(""))
+                using (MySqlConnection connection = new MySqlConnection("server=localhost;user=scraperis;password=useris3;database=AutoSkelbiu;"))
                 {
                     connection.Execute("DELETE FROM REMEMBERED_LIST WHERE USER_ID=" + userId + " AND LINK_ID=" + linkId);
                 }
