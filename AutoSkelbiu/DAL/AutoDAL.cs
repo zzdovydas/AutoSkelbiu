@@ -20,7 +20,7 @@ namespace AutoSkelbiu.DAL
 
         public AutoDAL()
         {
-            
+            dbConnString = "";
         }
 
         public List<Auto> GetAutoList()

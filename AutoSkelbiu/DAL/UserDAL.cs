@@ -17,7 +17,7 @@ namespace AutoSkelbiu.DAL
         private readonly string dbConnString;
         public UserDAL()
         {
-            
+            dbConnString = "";
         }
 
         //SELECT DISTINCT AUTO_MAKE FROM `AUTO`
